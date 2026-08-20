@@ -71,15 +71,25 @@ body {
 /* HUD Overlay */
 #hud {
     position: absolute;
-    top: 24px;
+    top: 0;
     left: 0;
     right: 0;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    padding: 0 24px;
+    padding-top: 14px;
     pointer-events: none;
     z-index: 10;
+}
+
+.top-controls {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    display: flex;
+    gap: 8px;
+    pointer-events: auto;
+    z-index: 12;
 }
 
 .score-display {
@@ -87,22 +97,16 @@ body {
     font-size: 3.2rem;
     font-weight: 700;
     color: #ffffff;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 0 12px rgba(246, 185, 59, 0.5);
-    margin: 0 auto;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), 0 0 16px rgba(246, 185, 59, 0.45);
+    margin: 44px auto 0 auto;
+    pointer-events: none;
+    line-height: 1;
     transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 11;
 }
 
 .score-pop {
-    transform: scale(1.3);
-}
-
-.top-controls {
-    position: absolute;
-    right: 18px;
-    top: 0;
-    display: flex;
-    gap: 10px;
-    pointer-events: auto;
+    transform: scale(1.25);
 }
 
 .icon-btn {
@@ -111,20 +115,20 @@ body {
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--border-glass);
     color: white;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 1.1rem;
-    transition: all 0.2s ease;
+    font-size: 1rem;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .icon-btn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.05);
     background: rgba(30, 40, 70, 0.85);
     border-color: rgba(255, 255, 255, 0.4);
 }
@@ -137,18 +141,20 @@ body {
 .overlay-screen {
     position: absolute;
     inset: 0;
-    background: rgba(10, 15, 30, 0.72);
+    background: rgba(10, 15, 30, 0.76);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 24px;
+    padding: clamp(12px, 3vh, 24px) clamp(12px, 3vw, 20px);
     z-index: 20;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .overlay-screen.active {
@@ -159,13 +165,14 @@ body {
 /* Title & Logo */
 .game-title-container {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: clamp(10px, 2.5vh, 22px);
     animation: float 3s ease-in-out infinite;
+    flex-shrink: 0;
 }
 
 .game-title {
     font-family: 'Fredoka', sans-serif;
-    font-size: 3rem;
+    font-size: clamp(2.1rem, 7.5vw, 3rem);
     font-weight: 700;
     background: linear-gradient(135deg, #f6b93b, #fa983a, #e55039);
     -webkit-background-clip: text;
@@ -177,12 +184,12 @@ body {
 }
 
 .game-subtitle {
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 2.2vw, 0.9rem);
     color: var(--text-muted);
     font-weight: 600;
-    letter-spacing: 3px;
+    letter-spacing: clamp(1.5px, 0.5vw, 3px);
     text-transform: uppercase;
-    margin-top: 4px;
+    margin-top: 3px;
 }
 
 @keyframes float {
@@ -195,13 +202,17 @@ body {
     background: var(--bg-card);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-lg);
-    padding: 24px 26px;
+    padding: clamp(14px, 3.8vw, 24px);
     width: 100%;
-    max-width: min(94vw, 470px);
+    max-width: min(94vw, 440px);
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: clamp(10px, 2vh, 14px);
+    max-height: 88vh;
+    max-height: 88dvh;
+    overflow-y: auto;
+    flex-shrink: 1;
 }
 
 /* Primary Action Buttons */
@@ -209,9 +220,9 @@ body {
     background: linear-gradient(135deg, #f6b93b, #e55039);
     color: white;
     border: none;
-    padding: 14px 28px;
+    padding: clamp(11px, 2.4vh, 14px) 24px;
     font-family: 'Fredoka', sans-serif;
-    font-size: 1.3rem;
+    font-size: clamp(1.1rem, 3.5vw, 1.3rem);
     font-weight: 700;
     border-radius: 999px;
     cursor: pointer;
@@ -220,10 +231,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     text-transform: uppercase;
     letter-spacing: 1px;
     width: 100%;
+    flex-shrink: 0;
 }
 
 .btn-primary:hover {
@@ -239,9 +251,9 @@ body {
     background: rgba(255, 255, 255, 0.08);
     color: var(--text-main);
     border: 1px solid var(--border-glass);
-    padding: 10px 18px;
+    padding: clamp(8px, 1.8vh, 10px) 16px;
     font-family: 'Outfit', sans-serif;
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
     font-weight: 600;
     border-radius: var(--radius-md);
     cursor: pointer;
@@ -263,14 +275,14 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
 }
 
 .option-label {
-    width: 95px;
+    width: 76px;
     flex-shrink: 0;
-    font-size: 0.78rem;
+    font-size: clamp(0.68rem, 2vw, 0.76rem);
     color: var(--text-muted);
     font-weight: 800;
     text-transform: uppercase;
@@ -282,7 +294,8 @@ body {
 .difficulty-group {
     display: flex;
     flex: 1;
-    background: rgba(0, 0, 0, 0.4);
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.45);
     border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 3px;
     border-radius: var(--radius-md);
@@ -293,18 +306,42 @@ body {
 .sound-btn,
 .diff-btn {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: none;
     color: var(--text-muted);
-    padding: 6px 3px;
+    padding: 6px 2px;
     border-radius: var(--radius-sm);
-    font-size: 0.72rem;
+    font-size: clamp(0.62rem, 1.8vw, 0.72rem);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
     text-transform: uppercase;
     white-space: nowrap;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.theme-btn > *,
+.sound-btn > *,
+.diff-btn > * {
+    pointer-events: none;
+}
+
+.theme-btn .btn-icon {
+    font-size: 0.82em;
+    line-height: 1;
+}
+
+.theme-btn .btn-text,
+.sound-btn .btn-text,
+.diff-btn .btn-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.1;
 }
 
 .theme-btn:hover,
@@ -322,43 +359,82 @@ body {
 }
 
 @media (max-width: 420px) {
-    .glass-card {
-        padding: 18px 16px;
-        gap: 12px;
+    .top-controls {
+        top: 10px;
+        right: 10px;
+        gap: 6px;
+    }
+
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
+
+    .score-display {
+        font-size: 2.7rem;
+        margin: 38px auto 0 auto;
     }
 
     .option-label {
-        width: 80px;
-        font-size: 0.72rem;
+        width: 68px;
+        font-size: 0.68rem;
     }
 
     .theme-btn,
     .sound-btn,
     .diff-btn {
-        font-size: 0.65rem;
         padding: 5px 1px;
+        font-size: 0.62rem;
+        gap: 2px;
+    }
+
+    .controls-guide {
+        font-size: 0.72rem;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 350px) {
+    .option-label {
+        width: 60px;
+        font-size: 0.62rem;
+    }
+
+    .theme-btn .btn-text {
+        display: inline;
+    }
+
+    .theme-btn,
+    .sound-btn,
+    .diff-btn {
+        font-size: 0.58rem;
+        padding: 4px 1px;
     }
 }
 
 /* Game Over Card Details */
 .game-over-title {
     font-family: 'Fredoka', sans-serif;
-    font-size: 2.2rem;
+    font-size: clamp(1.8rem, 6.5vw, 2.3rem);
     color: #e55039;
     text-align: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     letter-spacing: 1px;
     text-shadow: 0 0 15px rgba(229, 80, 57, 0.5);
+    width: 100%;
 }
 
 .stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 14px;
+    gap: clamp(8px, 2.5vw, 12px);
+    background: rgba(0, 0, 0, 0.35);
+    padding: clamp(10px, 3vw, 14px);
     border-radius: var(--radius-md);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .stat-box {
@@ -368,7 +444,7 @@ body {
 }
 
 .stat-label {
-    font-size: 0.75rem;
+    font-size: clamp(0.68rem, 2vw, 0.75rem);
     color: var(--text-muted);
     text-transform: uppercase;
     font-weight: 700;
@@ -377,7 +453,7 @@ body {
 
 .stat-value {
     font-family: 'Fredoka', sans-serif;
-    font-size: 1.8rem;
+    font-size: clamp(1.5rem, 5vw, 1.8rem);
     font-weight: 700;
     color: white;
     margin-top: 2px;
@@ -392,26 +468,45 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding-top: 6px;
+    gap: 8px;
+    padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .medal-icon {
-    font-size: 1.8rem;
+    font-size: clamp(1.5rem, 4.5vw, 1.8rem);
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
 }
 
 .medal-text {
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2.6vw, 0.95rem);
     font-weight: 700;
     color: var(--gold);
 }
 
 .btn-group {
     display: flex;
+    align-items: stretch;
     gap: 10px;
     width: 100%;
+    box-sizing: border-box;
+}
+
+.btn-group .btn-primary {
+    flex: 1.3;
+    width: auto;
+    min-width: 0;
+    padding: clamp(10px, 2vh, 13px) 14px;
+    font-size: clamp(1rem, 3.2vw, 1.2rem);
+}
+
+.btn-group .btn-secondary {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding: clamp(10px, 2vh, 13px) 14px;
+    font-size: clamp(0.85rem, 2.8vw, 0.95rem);
+    white-space: nowrap;
 }
 
 /* Tap Hint Screen */

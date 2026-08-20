@@ -242,16 +242,16 @@ class FlappyGame {
     }
 
     setupCanvas() {
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const rect = this.canvas.getBoundingClientRect();
         const clientWidth = rect.width > 0 ? rect.width : (window.innerWidth || 380);
         const clientHeight = rect.height > 0 ? rect.height : (window.innerHeight || 640);
 
-        this.canvas.width = clientWidth * dpr;
-        this.canvas.height = clientHeight * dpr;
+        this.canvas.width = Math.round(clientWidth * dpr);
+        this.canvas.height = Math.round(clientHeight * dpr);
 
         this.worldHeight = CONFIG.baseHeight;
-        this.worldWidth = Math.max(360, (clientWidth / clientHeight) * this.worldHeight);
+        this.worldWidth = (clientWidth / clientHeight) * this.worldHeight;
 
         this.scale = (this.canvas.height / this.worldHeight);
         this.ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
@@ -500,7 +500,7 @@ class FlappyGame {
 
     resetGame() {
         const diffConfig = CONFIG.difficulties[this.difficulty];
-        const birdX = Math.min(this.worldWidth * 0.25, 200);
+        const birdX = Math.max(70, Math.min(this.worldWidth * 0.28, 160));
         this.bird = new Bird(birdX, this.worldHeight * 0.44, diffConfig);
         this.pipes = [];
         this.bonusRings = [];
@@ -575,7 +575,7 @@ class FlappyGame {
         const topHeight = Math.floor(Math.random() * (maxTop - minTop)) + minTop;
 
         const isMoving = Math.random() < diffConfig.movingPipeChance;
-        const pipeX = this.worldWidth + 30;
+        const pipeX = this.worldWidth + 24;
 
         const newPipe = new PipePair(
             pipeX,
@@ -786,13 +786,14 @@ class FlappyGame {
         }
 
         // Sun / Moon
+        const sunX = Math.max(120, this.worldWidth - 75);
         this.ctx.fillStyle = theme.sunColor;
         this.ctx.beginPath();
-        this.ctx.arc(this.worldWidth - 80, 75, 34, 0, Math.PI * 2);
+        this.ctx.arc(sunX, 75, 34, 0, Math.PI * 2);
         this.ctx.fill();
         this.ctx.fillStyle = theme.sunGlow;
         this.ctx.beginPath();
-        this.ctx.arc(this.worldWidth - 80, 75, 52, 0, Math.PI * 2);
+        this.ctx.arc(sunX, 75, 52, 0, Math.PI * 2);
         this.ctx.fill();
 
         // 3. Parallax Clouds
