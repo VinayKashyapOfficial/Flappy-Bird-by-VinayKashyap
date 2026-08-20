@@ -1,0 +1,466 @@
+/* Modern Arcade Design System for Flappy Bird */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Fredoka:wght@600;700&family=Press+Start+2P&display=swap');
+
+:root {
+    --primary: #f6b93b;
+    --primary-glow: rgba(246, 185, 59, 0.4);
+    --accent: #e55039;
+    --accent-glow: rgba(229, 80, 57, 0.4);
+    --secondary: #4a69bd;
+    --bg-dark: #0f1423;
+    --bg-card: rgba(20, 27, 45, 0.85);
+    --border-glass: rgba(255, 255, 255, 0.15);
+    --text-main: #ffffff;
+    --text-muted: #8c9cb8;
+    --gold: #f9ca24;
+    --silver: #dff9fb;
+    --bronze: #e17055;
+    --platinum: #67e6dc;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    background-color: var(--bg-dark);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(74, 105, 189, 0.2) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(229, 80, 57, 0.15) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(246, 185, 59, 0.08) 0px, transparent 60%);
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+#app-container {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: #4ec0ca;
+}
+
+/* Canvas styling */
+#game-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: pointer;
+}
+
+/* HUD Overlay */
+#hud {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.score-display {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 3.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 0 12px rgba(246, 185, 59, 0.5);
+    margin: 0 auto;
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.score-pop {
+    transform: scale(1.3);
+}
+
+.top-controls {
+    position: absolute;
+    right: 18px;
+    top: 0;
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.icon-btn {
+    background: rgba(15, 20, 35, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-glass);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.icon-btn:hover {
+    transform: translateY(-2px);
+    background: rgba(30, 40, 70, 0.85);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.icon-btn:active {
+    transform: scale(0.95);
+}
+
+/* Modal Overlay Base */
+.overlay-screen {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 15, 30, 0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.overlay-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Title & Logo */
+.game-title-container {
+    text-align: center;
+    margin-bottom: 24px;
+    animation: float 3s ease-in-out infinite;
+}
+
+.game-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f6b93b, #fa983a, #e55039);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 10px rgba(229, 80, 57, 0.4));
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.game-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 4px;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+/* Glass Card */
+.glass-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Primary Action Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #f6b93b, #e55039);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px var(--accent-glow), 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 25px var(--accent-glow);
+}
+
+.btn-primary:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-main);
+    border: 1px solid var(--border-glass);
+    padding: 10px 18px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Skin Selector & Difficulty Select */
+.option-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.option-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.skin-selector {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.skin-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.skin-btn:hover {
+    transform: scale(1.1);
+}
+
+.skin-btn.active {
+    border-color: #f6b93b;
+    box-shadow: 0 0 15px var(--primary-glow);
+    transform: scale(1.15);
+    background: rgba(246, 185, 59, 0.2);
+}
+
+.difficulty-group {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    gap: 4px;
+}
+
+.diff-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 0;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.diff-btn.active {
+    background: var(--secondary);
+    color: white;
+    box-shadow: 0 2px 6px rgba(74, 105, 189, 0.5);
+}
+
+/* Game Over Card Details */
+.game-over-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2.2rem;
+    color: #e55039;
+    text-align: center;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 15px rgba(229, 80, 57, 0.5);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    margin-top: 2px;
+}
+
+.stat-value.high-score {
+    color: var(--gold);
+}
+
+.medal-box {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.medal-icon {
+    font-size: 1.8rem;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+}
+
+.medal-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gold);
+}
+
+.btn-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Tap Hint Screen */
+#get-ready-hint {
+    position: absolute;
+    bottom: 22%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    animation: pulse 1.5s infinite;
+    z-index: 15;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#get-ready-hint.active {
+    opacity: 1;
+}
+
+.tap-icon {
+    font-size: 2.5rem;
+    margin-bottom: 6px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.tap-text {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.2rem;
+    color: white;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* Controls Hint in Start Screen */
+.controls-guide {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.key-badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+}
