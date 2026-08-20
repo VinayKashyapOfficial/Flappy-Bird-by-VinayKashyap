@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Flappy Bird Arcade Edition</title>
-    <meta name="description" content="A modern, high-performance Flappy Bird game built with HTML5 Canvas, Web Audio API, multiple skins, and particle effects.">
+    <meta name="description" content="A modern, high-performance Flappy Bird game built with HTML5 Canvas, Web Audio API, dynamic themes, obstacle varieties, multiple skins, and particle effects.">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,9 +16,9 @@
         <header id="hud">
             <div class="score-display" id="hud-score">0</div>
             <div class="top-controls">
+                <button class="icon-btn" id="btn-theme-toggle" title="Cycle Theme" aria-label="Cycle Theme">🎨</button>
                 <button class="icon-btn" id="btn-fullscreen" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">⛶</button>
                 <button class="icon-btn" id="btn-sound" title="Toggle Sound" aria-label="Toggle Sound">🔊</button>
-                <button class="icon-btn" id="btn-music" title="Toggle Music" aria-label="Toggle Music">🎵</button>
                 <button class="icon-btn" id="btn-pause" title="Pause Game" aria-label="Pause Game">⏸️</button>
             </div>
         </header>
@@ -37,14 +37,24 @@
             </div>
 
             <div class="glass-card">
-                <!-- Skin Selection -->
+                <!-- Theme Selection -->
                 <div class="option-row">
-                    <span class="option-label">Choose Bird:</span>
-                    <div class="skin-selector">
-                        <button class="skin-btn active" data-skin="gold" title="Golden Bird">🐥</button>
-                        <button class="skin-btn" data-skin="cyber" title="Cyber Neon">🤖</button>
-                        <button class="skin-btn" data-skin="crimson" title="Phoenix">🦅</button>
-                        <button class="skin-btn" data-skin="bat" title="Midnight Bat">🦇</button>
+                    <span class="option-label">Theme:</span>
+                    <div class="theme-selector">
+                        <button class="theme-btn active" data-theme="day" title="Sunny Day">☀️ Day</button>
+                        <button class="theme-btn" data-theme="sunset" title="Sunset Dusk">🌇 Sunset</button>
+                        <button class="theme-btn" data-theme="cyber" title="Cyberpunk Night">🌌 Cyber</button>
+                        <button class="theme-btn" data-theme="lava" title="Lava Inferno">🌋 Lava</button>
+                    </div>
+                </div>
+
+                <!-- Sound Pack Selection -->
+                <div class="option-row">
+                    <span class="option-label">SFX Pack:</span>
+                    <div class="sound-group">
+                        <button class="sound-btn active" data-sound="retro" title="Retro 8-Bit Arcade">8-Bit</button>
+                        <button class="sound-btn" data-sound="cyber" title="Cyber Synthwave">Cyber</button>
+                        <button class="sound-btn" data-sound="cartoon" title="Cute Cartoon">Cartoon</button>
                     </div>
                 </div>
 

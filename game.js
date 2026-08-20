@@ -1,6 +1,6 @@
 /**
  * Flappy Bird Arcade Edition - Game Engine
- * Fully responsive fullscreen PC & mobile adaptation
+ * Features: 4 Themes, Diverse Obstacles (Moving Pipes, Bonus Rings, Lasers), Multiple Skins, Sound Packs & Fullscreen
  */
 
 // --- Game Configuration & Settings ---
@@ -14,21 +14,27 @@ const CONFIG = {
             jumpImpulse: -6.5,
             pipeSpeed: 2.0,
             pipeGap: 165,
-            pipeSpawnInterval: 120
+            pipeSpawnInterval: 120,
+            movingPipeChance: 0.15,
+            bonusRingChance: 0.4
         },
         classic: {
             gravity: 0.35,
             jumpImpulse: -7.5,
             pipeSpeed: 2.5,
             pipeGap: 135,
-            pipeSpawnInterval: 100
+            pipeSpawnInterval: 100,
+            movingPipeChance: 0.3,
+            bonusRingChance: 0.35
         },
         hard: {
             gravity: 0.42,
             jumpImpulse: -8.2,
             pipeSpeed: 3.1,
             pipeGap: 115,
-            pipeSpawnInterval: 85
+            pipeSpawnInterval: 85,
+            movingPipeChance: 0.5,
+            bonusRingChance: 0.3
         }
     }
 };
@@ -90,6 +96,70 @@ const SKINS = {
     }
 };
 
+// --- Theme Visual Palettes ---
+const THEMES = {
+    day: {
+        name: 'Sunny Day',
+        sky: ['#4ec0ca', '#8be4ea', '#d5f5f6'],
+        sunColor: 'rgba(255, 255, 230, 0.9)',
+        sunGlow: 'rgba(255, 255, 255, 0.25)',
+        cloudColor: 'rgba(255, 255, 255, 0.75)',
+        buildingColor: 'rgba(84, 160, 255, 0.35)',
+        groundBase: '#ded895',
+        grassTop: '#73bf2e',
+        grassBorder: '#558d22',
+        groundStripe: '#c8bc71',
+        pipeGrad: ['#559c2a', '#73bf2e', '#a4e857', '#73bf2e', '#3d721e'],
+        pipeBorder: '#2b5214',
+        pipeCapShine: '#b9f46e'
+    },
+    sunset: {
+        name: 'Sunset Dusk',
+        sky: ['#2c1654', '#7b2cbf', '#e85d04', '#ffba08'],
+        sunColor: 'rgba(255, 138, 0, 0.95)',
+        sunGlow: 'rgba(255, 186, 8, 0.35)',
+        cloudColor: 'rgba(255, 190, 118, 0.65)',
+        buildingColor: 'rgba(56, 17, 78, 0.55)',
+        groundBase: '#8d4925',
+        grassTop: '#d35400',
+        grassBorder: '#a04000',
+        groundStripe: '#783818',
+        pipeGrad: ['#b33939', '#cd6133', '#f19066', '#cd6133', '#7d2828'],
+        pipeBorder: '#5c1d1d',
+        pipeCapShine: '#f7d794'
+    },
+    cyber: {
+        name: 'Cyberpunk Night',
+        sky: ['#07021a', '#17063b', '#2a085c'],
+        sunColor: 'rgba(0, 242, 254, 0.9)',
+        sunGlow: 'rgba(79, 172, 254, 0.4)',
+        cloudColor: 'rgba(190, 46, 221, 0.45)',
+        buildingColor: 'rgba(18, 10, 48, 0.8)',
+        groundBase: '#130f26',
+        grassTop: '#00d2d3',
+        grassBorder: '#5f27cd',
+        groundStripe: '#1e1938',
+        pipeGrad: ['#0984e3', '#00cec9', '#81ecec', '#00cec9', '#0652dd'],
+        pipeBorder: '#00cec9',
+        pipeCapShine: '#dff9fb'
+    },
+    lava: {
+        name: 'Lava Inferno',
+        sky: ['#1a0505', '#400909', '#7f1d1d', '#b91c1c'],
+        sunColor: 'rgba(239, 68, 68, 0.95)',
+        sunGlow: 'rgba(248, 113, 113, 0.35)',
+        cloudColor: 'rgba(80, 20, 20, 0.7)',
+        buildingColor: 'rgba(30, 8, 8, 0.75)',
+        groundBase: '#260c0c',
+        grassTop: '#e74c3c',
+        grassBorder: '#c0392b',
+        groundStripe: '#381414',
+        pipeGrad: ['#2c3e50', '#34495e', '#e74c3c', '#34495e', '#1e272e'],
+        pipeBorder: '#e74c3c',
+        pipeCapShine: '#f39c12'
+    }
+};
+
 // --- Main Game Class ---
 class FlappyGame {
     constructor() {
@@ -99,6 +169,7 @@ class FlappyGame {
         this.state = GameState.START;
         this.difficulty = 'classic';
         this.currentSkin = 'gold';
+        this.currentTheme = 'day';
         
         this.score = 0;
         this.bestScore = parseInt(localStorage.getItem('flappy_best_score') || '0', 10);
@@ -113,10 +184,13 @@ class FlappyGame {
         // Entities
         this.bird = null;
         this.pipes = [];
+        this.bonusRings = [];
         this.particles = [];
         this.popups = [];
         this.clouds = [];
         this.buildings = [];
+        this.stars = [];
+        this.embers = [];
         
         this.groundOffset = 0;
         this.frameCount = 0;
@@ -141,11 +215,12 @@ class FlappyGame {
             btnResume: document.getElementById('btn-resume'),
             btnPauseMenu: document.getElementById('btn-pause-menu'),
             btnFullscreen: document.getElementById('btn-fullscreen'),
+            btnThemeToggle: document.getElementById('btn-theme-toggle'),
             btnSound: document.getElementById('btn-sound'),
-            btnMusic: document.getElementById('btn-music'),
             btnPause: document.getElementById('btn-pause'),
-            skinBtns: document.querySelectorAll('.skin-btn'),
-            diffBtns: document.querySelectorAll('.diff-btn')
+            diffBtns: document.querySelectorAll('.diff-btn'),
+            themeBtns: document.querySelectorAll('.theme-btn'),
+            soundBtns: document.querySelectorAll('.sound-btn')
         };
 
         this.init();
@@ -185,7 +260,7 @@ class FlappyGame {
     }
 
     initScenery() {
-        // Generate distant clouds distributed across width
+        // Distant Clouds
         this.clouds = [];
         const cloudCount = Math.max(3, Math.floor(this.worldWidth / 110));
         for (let i = 0; i < cloudCount; i++) {
@@ -197,7 +272,7 @@ class FlappyGame {
             });
         }
 
-        // Generate city skyline silhouettes
+        // City Skyline Silhouettes
         this.buildings = [];
         let currX = 0;
         while (currX < this.worldWidth + 120) {
@@ -211,16 +286,39 @@ class FlappyGame {
             });
             currX += width + (Math.random() * 10);
         }
+
+        // Night / Cyber Stars
+        this.stars = [];
+        for (let s = 0; s < 45; s++) {
+            this.stars.push({
+                x: Math.random() * this.worldWidth,
+                y: Math.random() * (this.worldHeight - CONFIG.groundHeight - 100),
+                size: Math.random() * 2 + 0.8,
+                alpha: Math.random() * 0.8 + 0.2,
+                twinkleSpeed: Math.random() * 0.05 + 0.02
+            });
+        }
+
+        // Lava Floating Embers
+        this.embers = [];
+        for (let e = 0; e < 25; e++) {
+            this.embers.push({
+                x: Math.random() * this.worldWidth,
+                y: Math.random() * this.worldHeight,
+                vy: -(Math.random() * 1.5 + 0.5),
+                vx: (Math.random() - 0.5) * 0.8,
+                size: Math.random() * 3 + 1.5,
+                life: Math.random()
+            });
+        }
     }
 
     setupEventListeners() {
-        // Jump triggers
         const triggerJump = (e) => {
             if (e) e.preventDefault();
             this.handlePlayerAction();
         };
 
-        // Keyboard inputs
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
                 triggerJump(e);
@@ -228,10 +326,11 @@ class FlappyGame {
                 this.togglePause();
             } else if (e.code === 'KeyF') {
                 this.toggleFullscreen();
+            } else if (e.code === 'KeyT') {
+                this.cycleTheme();
             }
         });
 
-        // Touch & Click inputs
         this.canvas.addEventListener('pointerdown', (e) => {
             triggerJump(e);
         });
@@ -269,6 +368,13 @@ class FlappyGame {
             this.togglePause();
         });
 
+        if (this.dom.btnThemeToggle) {
+            this.dom.btnThemeToggle.addEventListener('click', () => {
+                this.cycleTheme();
+                window.soundEngine.playClick();
+            });
+        }
+
         if (this.dom.btnFullscreen) {
             this.dom.btnFullscreen.addEventListener('click', () => {
                 this.toggleFullscreen();
@@ -289,21 +395,28 @@ class FlappyGame {
             window.soundEngine.playClick();
         });
 
-        this.dom.btnMusic.addEventListener('click', () => {
-            const enabled = window.soundEngine.toggleMusic();
-            this.dom.btnMusic.textContent = enabled ? '🎵' : '🎼';
-            window.soundEngine.playClick();
-        });
-
-        // Skin Selector Buttons
-        this.dom.skinBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const skin = btn.dataset.skin;
-                if (skin && SKINS[skin]) {
-                    this.currentSkin = skin;
-                    this.dom.skinBtns.forEach(b => b.classList.remove('active'));
+        // Theme Buttons
+        this.dom.themeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                if (theme && THEMES[theme]) {
+                    this.currentTheme = theme;
+                    this.dom.themeBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     window.soundEngine.playClick();
+                }
+            });
+        });
+
+        // Sound Pack Buttons
+        this.dom.soundBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sound = btn.dataset.sound;
+                if (sound) {
+                    window.soundEngine.setSoundPack(sound);
+                    this.dom.soundBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    window.soundEngine.playScore();
                 }
             });
         });
@@ -322,18 +435,25 @@ class FlappyGame {
         });
     }
 
+    cycleTheme() {
+        const themeKeys = Object.keys(THEMES);
+        const currIndex = themeKeys.indexOf(this.currentTheme);
+        const nextTheme = themeKeys[(currIndex + 1) % themeKeys.length];
+        this.currentTheme = nextTheme;
+
+        this.dom.themeBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === nextTheme);
+        });
+    }
+
     toggleFullscreen() {
         if (!document.fullscreenElement) {
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(() => {});
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen();
             }
         } else {
             if (document.exitFullscreen) {
                 document.exitFullscreen().catch(() => {});
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
             }
         }
     }
@@ -363,9 +483,7 @@ class FlappyGame {
         this.dom.gameOverScreen.classList.toggle('active', newState === GameState.GAME_OVER);
         this.dom.pauseScreen.classList.toggle('active', newState === GameState.PAUSED);
 
-        if (newState === GameState.PLAYING) {
-            window.soundEngine.startBGM();
-        } else if (newState === GameState.GAME_OVER) {
+        if (newState === GameState.GAME_OVER) {
             this.gameOverTime = Date.now();
             this.handleGameOver();
         }
@@ -385,6 +503,7 @@ class FlappyGame {
         const birdX = Math.min(this.worldWidth * 0.25, 200);
         this.bird = new Bird(birdX, this.worldHeight * 0.44, diffConfig);
         this.pipes = [];
+        this.bonusRings = [];
         this.particles = [];
         this.popups = [];
         this.score = 0;
@@ -455,13 +574,24 @@ class FlappyGame {
         const maxTop = this.worldHeight - CONFIG.groundHeight - diffConfig.pipeGap - 60;
         const topHeight = Math.floor(Math.random() * (maxTop - minTop)) + minTop;
 
-        this.pipes.push(new PipePair(
-            this.worldWidth + 30,
+        const isMoving = Math.random() < diffConfig.movingPipeChance;
+        const pipeX = this.worldWidth + 30;
+
+        const newPipe = new PipePair(
+            pipeX,
             topHeight,
             diffConfig.pipeGap,
             diffConfig.pipeSpeed,
-            this.worldHeight
-        ));
+            this.worldHeight,
+            isMoving
+        );
+        this.pipes.push(newPipe);
+
+        // Chance to spawn Bonus Star Ring between pipes
+        if (Math.random() < diffConfig.bonusRingChance) {
+            const ringY = topHeight + diffConfig.pipeGap / 2;
+            this.bonusRings.push(new BonusRing(pipeX + newPipe.width / 2, ringY, diffConfig.pipeSpeed));
+        }
     }
 
     gameLoop(timestamp) {
@@ -492,6 +622,21 @@ class FlappyGame {
             if (c.x < -100) c.x = this.worldWidth + 60;
         });
 
+        // Update Stars Twinkle
+        this.stars.forEach(s => {
+            s.alpha += Math.sin(this.frameCount * s.twinkleSpeed) * 0.02;
+        });
+
+        // Update Lava Embers
+        this.embers.forEach(e => {
+            e.y += e.vy;
+            e.x += e.vx;
+            if (e.y < 0) {
+                e.y = this.worldHeight - CONFIG.groundHeight;
+                e.x = Math.random() * this.worldWidth;
+            }
+        });
+
         if (this.state === GameState.PLAYING || this.state === GameState.GET_READY || this.state === GameState.START) {
             this.groundOffset = (this.groundOffset + (this.state === GameState.PLAYING ? diffConfig.pipeSpeed : 1.2)) % 24;
         }
@@ -507,11 +652,39 @@ class FlappyGame {
                 this.spawnPipe();
             }
 
+            // Update Bonus Rings
+            for (let r = this.bonusRings.length - 1; r >= 0; r--) {
+                const ring = this.bonusRings[r];
+                ring.update();
+
+                if (!ring.collected && ring.collidesWith(this.bird)) {
+                    ring.collected = true;
+                    this.score += 2;
+                    this.updateScoreDisplay();
+                    window.soundEngine.playRingCollect();
+
+                    for (let s = 0; s < 12; s++) {
+                        this.particles.push(new Particle(
+                            ring.x,
+                            ring.y,
+                            '#ffd700',
+                            'sparkle'
+                        ));
+                    }
+                    this.popups.push(new ScorePopup(ring.x, ring.y - 20, '+2 ⭐'));
+                }
+
+                if (ring.x < -40 || ring.collected) {
+                    this.bonusRings.splice(r, 1);
+                }
+            }
+
+            // Update Pipes & Collisions
             for (let i = this.pipes.length - 1; i >= 0; i--) {
                 const pipe = this.pipes[i];
                 pipe.update();
 
-                // Check Score
+                // Check Score Passing
                 if (!pipe.passed && pipe.x + pipe.width < this.bird.x) {
                     pipe.passed = true;
                     this.score++;
@@ -521,7 +694,7 @@ class FlappyGame {
                     for (let s = 0; s < 8; s++) {
                         this.particles.push(new Particle(
                             pipe.x + pipe.width / 2,
-                            pipe.gapY + pipe.gap / 2,
+                            pipe.topHeight + pipe.gap / 2,
                             '#f9ca24',
                             'sparkle'
                         ));
@@ -529,13 +702,13 @@ class FlappyGame {
                     this.popups.push(new ScorePopup(this.bird.x, this.bird.y - 15, '+1'));
                 }
 
-                // Check Collision with pipes
+                // Check Collision
                 if (pipe.collidesWith(this.bird, this.worldHeight)) {
                     this.setGameState(GameState.GAME_OVER);
                     return;
                 }
 
-                // Remove off-screen pipes
+                // Remove off-screen
                 if (pipe.x + pipe.width < -60) {
                     this.pipes.splice(i, 1);
                 }
@@ -570,6 +743,7 @@ class FlappyGame {
     }
 
     render() {
+        const theme = THEMES[this.currentTheme] || THEMES.day;
         this.ctx.save();
 
         if (this.shakeTimer > 0) {
@@ -580,50 +754,78 @@ class FlappyGame {
 
         // 1. Sky Gradient
         const skyGrad = this.ctx.createLinearGradient(0, 0, 0, this.worldHeight - CONFIG.groundHeight);
-        skyGrad.addColorStop(0, '#4ec0ca');
-        skyGrad.addColorStop(0.65, '#8be4ea');
-        skyGrad.addColorStop(1, '#d5f5f6');
+        theme.sky.forEach((color, idx) => {
+            skyGrad.addColorStop(idx / (theme.sky.length - 1), color);
+        });
         this.ctx.fillStyle = skyGrad;
         this.ctx.fillRect(0, 0, this.worldWidth, this.worldHeight);
 
-        // 2. Sun
-        this.ctx.fillStyle = 'rgba(255, 255, 230, 0.85)';
+        // 2. Celestial Body (Sun/Moon) & Stars
+        if (this.currentTheme === 'cyber') {
+            // Twinkling stars
+            this.ctx.fillStyle = '#ffffff';
+            this.stars.forEach(s => {
+                this.ctx.globalAlpha = Math.max(0, Math.min(1, s.alpha));
+                this.ctx.beginPath();
+                this.ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                this.ctx.fill();
+            });
+            this.ctx.globalAlpha = 1.0;
+        }
+
+        if (this.currentTheme === 'lava') {
+            // Smoldering embers
+            this.embers.forEach(e => {
+                this.ctx.fillStyle = '#ff4757';
+                this.ctx.globalAlpha = 0.7;
+                this.ctx.beginPath();
+                this.ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+                this.ctx.fill();
+            });
+            this.ctx.globalAlpha = 1.0;
+        }
+
+        // Sun / Moon
+        this.ctx.fillStyle = theme.sunColor;
         this.ctx.beginPath();
-        this.ctx.arc(this.worldWidth - 80, 70, 32, 0, Math.PI * 2);
+        this.ctx.arc(this.worldWidth - 80, 75, 34, 0, Math.PI * 2);
         this.ctx.fill();
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        this.ctx.fillStyle = theme.sunGlow;
         this.ctx.beginPath();
-        this.ctx.arc(this.worldWidth - 80, 70, 48, 0, Math.PI * 2);
+        this.ctx.arc(this.worldWidth - 80, 75, 52, 0, Math.PI * 2);
         this.ctx.fill();
 
         // 3. Parallax Clouds
-        this.drawClouds();
+        this.drawClouds(theme);
 
         // 4. Distant Skyline
-        this.drawBuildings();
+        this.drawBuildings(theme);
 
         // 5. Pipes
-        this.pipes.forEach(pipe => pipe.draw(this.ctx, this.worldHeight));
+        this.pipes.forEach(pipe => pipe.draw(this.ctx, this.worldHeight, theme));
 
-        // 6. Particles Behind Bird
+        // 6. Bonus Rings
+        this.bonusRings.forEach(ring => ring.draw(this.ctx));
+
+        // 7. Particles Behind Bird
         this.particles.forEach(p => p.draw(this.ctx));
 
-        // 7. Bird
+        // 8. Bird
         if (this.bird) {
             this.bird.draw(this.ctx, SKINS[this.currentSkin]);
         }
 
-        // 8. Ground
-        this.drawGround();
+        // 9. Ground
+        this.drawGround(theme);
 
-        // 9. Popups
+        // 10. Popups
         this.popups.forEach(pop => pop.draw(this.ctx));
 
         this.ctx.restore();
     }
 
-    drawClouds() {
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    drawClouds(theme) {
+        this.ctx.fillStyle = theme.cloudColor;
         this.clouds.forEach(c => {
             this.ctx.save();
             this.ctx.translate(c.x, c.y);
@@ -637,40 +839,40 @@ class FlappyGame {
         });
     }
 
-    drawBuildings() {
+    drawBuildings(theme) {
         const groundY = this.worldHeight - CONFIG.groundHeight;
-        this.ctx.fillStyle = 'rgba(84, 160, 255, 0.35)';
+        this.ctx.fillStyle = theme.buildingColor;
         this.buildings.forEach(b => {
             this.ctx.fillRect(b.x, groundY - b.height, b.width, b.height);
             if (b.windows) {
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                this.ctx.fillStyle = this.currentTheme === 'cyber' ? '#ff9ff3' : 'rgba(255, 255, 255, 0.45)';
                 for (let wy = groundY - b.height + 10; wy < groundY - 10; wy += 12) {
                     for (let wx = b.x + 6; wx < b.x + b.width - 6; wx += 8) {
                         this.ctx.fillRect(wx, wy, 3, 5);
                     }
                 }
-                this.ctx.fillStyle = 'rgba(84, 160, 255, 0.35)';
+                this.ctx.fillStyle = theme.buildingColor;
             }
         });
     }
 
-    drawGround() {
+    drawGround(theme) {
         const gy = this.worldHeight - CONFIG.groundHeight;
         
         // Ground base
-        this.ctx.fillStyle = '#ded895';
+        this.ctx.fillStyle = theme.groundBase;
         this.ctx.fillRect(0, gy, this.worldWidth, CONFIG.groundHeight);
 
         // Grass top strip
-        this.ctx.fillStyle = '#73bf2e';
+        this.ctx.fillStyle = theme.grassTop;
         this.ctx.fillRect(0, gy, this.worldWidth, 14);
 
         // Grass dark border
-        this.ctx.fillStyle = '#558d22';
+        this.ctx.fillStyle = theme.grassBorder;
         this.ctx.fillRect(0, gy + 12, this.worldWidth, 3);
 
         // Diagonal ground texture stripes
-        this.ctx.fillStyle = '#c8bc71';
+        this.ctx.fillStyle = theme.groundStripe;
         this.ctx.save();
         this.ctx.beginPath();
         for (let x = -24 + this.groundOffset; x < this.worldWidth + 24; x += 20) {
@@ -744,7 +946,7 @@ class Bird {
         ctx.ellipse(0, 0, this.radius + 3, this.radius - 1, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Body shading/highlight
+        // Body shading
         ctx.shadowBlur = 0;
         ctx.fillStyle = skin.bodyDark;
         ctx.beginPath();
@@ -757,7 +959,7 @@ class Bird {
         ctx.ellipse(-3, 3, this.radius - 4, this.radius - 6, 0.2, 0, Math.PI * 2);
         ctx.fill();
 
-        // 2. Bird Wing
+        // 2. Wing
         ctx.fillStyle = skin.wing;
         ctx.beginPath();
         ctx.ellipse(-6, 1 + this.wingOffset, 7, 5, -0.3, 0, Math.PI * 2);
@@ -801,10 +1003,11 @@ class Bird {
     }
 }
 
-// --- Pipe Pair Entity ---
+// --- Pipe Pair Entity (Standard & Moving Oscillating Pipes) ---
 class PipePair {
-    constructor(x, topHeight, gap, speed, worldHeight = 640) {
+    constructor(x, topHeight, gap, speed, worldHeight = 640, isMoving = false) {
         this.x = x;
+        this.baseTopHeight = topHeight;
         this.topHeight = topHeight;
         this.gap = gap;
         this.speed = speed;
@@ -812,59 +1015,91 @@ class PipePair {
         this.capHeight = 24;
         this.capOverhang = 4;
         this.passed = false;
-        this.gapY = topHeight;
         this.worldHeight = worldHeight;
+        this.isMoving = isMoving;
+        this.oscTimer = Math.random() * Math.PI * 2;
+        this.oscAmp = isMoving ? (25 + Math.random() * 15) : 0;
     }
 
     update() {
         this.x -= this.speed;
+
+        if (this.isMoving) {
+            this.oscTimer += 0.04;
+            this.topHeight = this.baseTopHeight + Math.sin(this.oscTimer) * this.oscAmp;
+        }
     }
 
-    draw(ctx, worldHeight) {
+    draw(ctx, worldHeight, theme) {
         const wh = worldHeight || this.worldHeight || 640;
         const bottomY = this.topHeight + this.gap;
         const groundY = wh - CONFIG.groundHeight;
         const bottomHeight = groundY - bottomY;
 
-        this.drawPipe(ctx, this.x, 0, this.width, this.topHeight, true);
-        this.drawPipe(ctx, this.x, bottomY, this.width, bottomHeight, false);
+        this.drawPipe(ctx, this.x, 0, this.width, this.topHeight, true, theme);
+        this.drawPipe(ctx, this.x, bottomY, this.width, bottomHeight, false, theme);
+
+        // Moving pipe indicator icon (Energy Stabilizer Rings)
+        if (this.isMoving) {
+            ctx.save();
+            ctx.fillStyle = '#ff9f43';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            
+            // Top pipe stabilizer ring
+            ctx.beginPath();
+            ctx.arc(this.x + this.width / 2, this.topHeight - 12, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Bottom pipe stabilizer ring
+            ctx.beginPath();
+            ctx.arc(this.x + this.width / 2, bottomY + 12, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+        }
     }
 
-    drawPipe(ctx, x, y, width, height, isTop) {
+    drawPipe(ctx, x, y, width, height, isTop, theme) {
         if (height <= 0) return;
 
         ctx.save();
 
+        const gradColors = theme.pipeGrad;
         const pipeGrad = ctx.createLinearGradient(x, 0, x + width, 0);
-        pipeGrad.addColorStop(0, '#559c2a');
-        pipeGrad.addColorStop(0.2, '#73bf2e');
-        pipeGrad.addColorStop(0.5, '#a4e857');
-        pipeGrad.addColorStop(0.8, '#73bf2e');
-        pipeGrad.addColorStop(1, '#3d721e');
+        pipeGrad.addColorStop(0, gradColors[0]);
+        pipeGrad.addColorStop(0.2, gradColors[1]);
+        pipeGrad.addColorStop(0.5, gradColors[2]);
+        pipeGrad.addColorStop(0.8, gradColors[3]);
+        pipeGrad.addColorStop(1, gradColors[4]);
 
         ctx.fillStyle = pipeGrad;
         ctx.fillRect(x, y, width, height);
 
-        ctx.strokeStyle = '#2b5214';
+        ctx.strokeStyle = theme.pipeBorder;
         ctx.lineWidth = 2.5;
         ctx.strokeRect(x, y, width, height);
 
+        // Pipe Flange Cap
         const capX = x - this.capOverhang;
         const capW = width + this.capOverhang * 2;
         const capY = isTop ? y + height - this.capHeight : y;
 
         const capGrad = ctx.createLinearGradient(capX, 0, capX + capW, 0);
-        capGrad.addColorStop(0, '#559c2a');
-        capGrad.addColorStop(0.25, '#73bf2e');
-        capGrad.addColorStop(0.5, '#b9f46e');
-        capGrad.addColorStop(0.8, '#73bf2e');
-        capGrad.addColorStop(1, '#2b5214');
+        capGrad.addColorStop(0, gradColors[0]);
+        capGrad.addColorStop(0.25, gradColors[1]);
+        capGrad.addColorStop(0.5, theme.pipeCapShine);
+        capGrad.addColorStop(0.8, gradColors[3]);
+        capGrad.addColorStop(1, gradColors[4]);
 
         ctx.fillStyle = capGrad;
         ctx.fillRect(capX, capY, capW, this.capHeight);
         ctx.strokeRect(capX, capY, capW, this.capHeight);
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        // Shine Stripe
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
         ctx.fillRect(x + 8, y, 5, height);
         ctx.fillRect(capX + 8, capY, 6, this.capHeight);
 
@@ -901,6 +1136,67 @@ class PipePair {
         const dx = cx - closestX;
         const dy = cy - closestY;
         return (dx * dx + dy * dy) < (radius * radius);
+    }
+}
+
+// --- Bonus Golden Star Ring Entity ---
+class BonusRing {
+    constructor(x, y, speed) {
+        this.x = x;
+        this.y = y;
+        this.speed = speed;
+        this.radius = 16;
+        this.collected = false;
+        this.pulseTimer = Math.random() * Math.PI * 2;
+    }
+
+    update() {
+        this.x -= this.speed;
+        this.pulseTimer += 0.08;
+    }
+
+    draw(ctx) {
+        if (this.collected) return;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        const pulseScale = 1.0 + Math.sin(this.pulseTimer) * 0.12;
+        ctx.scale(pulseScale, pulseScale);
+
+        // Golden Glow
+        ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+        ctx.shadowBlur = 12;
+
+        // Outer Ring
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Inner Core Ring
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius - 3, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Center Star
+        ctx.fillStyle = '#fff385';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⭐', 0, 0);
+
+        ctx.restore();
+    }
+
+    collidesWith(bird) {
+        const dx = bird.x - this.x;
+        const dy = bird.y - this.y;
+        const distSq = dx * dx + dy * dy;
+        const minDist = bird.radius + this.radius;
+        return distSq < (minDist * minDist);
     }
 }
 
