@@ -21,12 +21,37 @@
     --radius-sm: 8px;
 }
 
-* {
+*, *::before, *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    user-select: none;
-    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+    -webkit-touch-callout: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+::selection {
+    background: transparent;
+}
+
+::-moz-selection {
+    background: transparent;
 }
 
 body {
@@ -42,7 +67,7 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    touch-action: manipulation;
+    touch-action: none;
 }
 
 #app-container {
@@ -58,6 +83,8 @@ body {
     align-items: center;
     overflow: hidden;
     background: #4ec0ca;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Canvas styling */
@@ -66,6 +93,11 @@ body {
     height: 100%;
     display: block;
     cursor: pointer;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none;
+    border: none;
 }
 
 /* HUD Overlay */
@@ -101,18 +133,23 @@ body {
     margin: 44px auto 0 auto;
     pointer-events: none;
     line-height: 1;
-    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 11;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .score-pop {
-    transform: scale(1.25);
+    animation: scorePopAnim 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scorePopAnim {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
 }
 
 .icon-btn {
-    background: rgba(15, 20, 35, 0.65);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(15, 20, 35, 0.85);
     border: 1px solid var(--border-glass);
     color: white;
     width: 36px;
@@ -123,13 +160,15 @@ body {
     justify-content: center;
     cursor: pointer;
     font-size: 1rem;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.15s ease, background 0.15s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .icon-btn:hover {
     transform: translateY(-2px) scale(1.05);
-    background: rgba(30, 40, 70, 0.85);
+    background: rgba(30, 40, 70, 0.95);
     border-color: rgba(255, 255, 255, 0.4);
 }
 
@@ -141,9 +180,7 @@ body {
 .overlay-screen {
     position: absolute;
     inset: 0;
-    background: rgba(10, 15, 30, 0.76);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(10, 15, 30, 0.88);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -152,9 +189,11 @@ body {
     z-index: 20;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.25s ease;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    will-change: opacity;
+    transform: translateZ(0);
 }
 
 .overlay-screen.active {
